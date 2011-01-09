@@ -1,18 +1,17 @@
-Welcome to your Appcelerator Titanium Mobile Project
+AccelerometerTest
+Copyright ©2011 Andrew D. Yates
+=====
 
-This is a blank project.  Start by editing your application's app.js to 
-make your first mobile project using Titanium.
+AccelerometerTest verifies that a mobile application written in
+Appcelerator Titanium can successfully detect small vibrations such as
+what may be produced by setting a mobile on a running dryer or washing
+machine.
 
+The vibration detection is the variance of the x, y, and z
+accelerometer axes over a limited sample in time. The threshold for
+positive vibration must be set manually after calibration.
 
-
-----------------------------------
-Stuff our legal folk make us say:
-
-Appcelerator, Appcelerator Titanium and associated marks and logos are 
-trademarks of Appcelerator, Inc. 
-
-Titanium is Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
-
-Titanium is licensed under the Apache Public License (Version 2). Please
-see the LICENSE file for the full license.
+Andrew D. Yates
+Benjamin Gilbert
+Eric Kerr
 
