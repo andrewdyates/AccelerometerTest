@@ -1,10 +1,11 @@
 AccelerometerTest
 Copyright ©2011 Andrew D. Yates
+andrewyates.name@gmail.com
 =====
 
 AccelerometerTest verifies that a mobile application written in
 Appcelerator Titanium can successfully detect small vibrations such as
-what may be produced by setting a mobile on a running dryer or washing
+what may be detected by setting a mobile on a running dryer or washing
 machine.
 
 The vibration detection is the variance of the x, y, and z
