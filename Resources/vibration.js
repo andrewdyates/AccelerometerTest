@@ -1,6 +1,6 @@
 // Javascript : Appcelerator Titanium
 // -*- coding: utf-8 -*-
-// Copyright © 2010 Andrew D. Yates
+// Copyright © 2011 Andrew D. Yates
 // All Rights Reserved
 
 /* Vibration.js: Detect iPhone and Android vibrations with Appcelerator.
@@ -13,23 +13,21 @@ var DFT_SAMPLE_SIZE = 20;
 
 
 function push_rotate(v, x, size) {
-    /* Add element to fixed-size array. 
+    /* Add element to fixed-size modular array. 
      * 
      * Arguments:
      *   v: Array
      *   x: item to add to Array
      *   size: int > 0, >= |v| of max array size
      * Modifies:
-     *   v: adds `x` as first item, may remove last item
+     *   v: v[v.length-1] = x, |v| <= size
      * Returns:
-     *   item removed from `v` or null
+     *   item shifted from v[0] or null
      * */
-    var last;
+    var last = null;
     v.push(x);
     if (v.length > size) {
 	last = v.shift();
-    } else {
-	last = null;
     }
     return last;
 }
@@ -51,14 +49,14 @@ function std_deviation(v, last_item, last_sum, last_sum_sqs) {
     if(last_item && last_sum && last_sum_sqs) {
 	var new_item = v[v.length - 1];
 	sum = last_sum - last_item + new_item;
-	sum_sqs = last_sum_sqs - last_item^2 + new_item^2;
+	sum_sqs = last_sum_sqs - Math.pow(last_item, 2) + Math.pow(new_item, 2);
     } else {
-	sum = v.reduce(function(a, b){return a + b;});
-	sum_sqs = v.reduce(function(a, b){return a + b^2;});
+	sum = v.reduce(function(a, b){return a + b;}, 0);
+	sum_sqs = v.reduce(function(a, b){return a + b*b;}, 0);
     }
 
     avg = sum / v.length;
-    sigma_sq = sum_sqs / v.length - avg^2;
+    sigma_sq = sum_sqs / v.length - Math.pow(avg, 2);
     sigma = Math.sqrt(sigma_sq);
     return sigma;
 }
