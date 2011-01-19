@@ -74,6 +74,7 @@ win.add(variance);
 // Accelerometer Event listener
 Ti.Accelerometer.addEventListener('update',function(e)
 {
+    var v;
     ts.text = e.timestamp;
     x.text = 'x: ' + e.x;
     y.text = 'y:' + e.y;
