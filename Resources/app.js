@@ -72,6 +72,7 @@ win.add(variance);
 
 
 // Accelerometer Event listener
+// samples every 100ms
 Ti.Accelerometer.addEventListener('update',function(e)
 {
     var v;
