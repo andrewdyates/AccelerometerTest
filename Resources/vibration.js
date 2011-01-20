@@ -11,9 +11,6 @@
 
 var DFT_SAMPLE_SIZE = 20;
 
-// there should be a "Sampler object" here
-// init to a size, push triplets, keeps own cache
-// returns useful values when queried
 
 Sampler = {
     size: DFT_SAMPLE_SIZE,
@@ -25,28 +22,29 @@ Sampler = {
 	sums: null,
 	sum_sqs: null
     },
-//    averages
-//    deviations
+    // flag "use cache" for variance computation
+    // can only push one item per computation before cache is expired
     
     push: function(x, y, z) {
 	this.items.push([x,y,z]);
 	if (this.items.length > this.size) {
 	    this.cache.item = this.items.shift();
 	}
+	// track status of cache
     },
 
-    avg_deviation: function() {
+    variance: function() {
 	var sums = [0, 0, 0];
-	var sq_sums = [0, 0, 0];
-	var devs = [null, null, null];
-	var avgs = [null, null, null];
-	var dev_avg;
+	var sum_sqs = [0, 0, 0];
+	var sum_var = 0;
+	var avg_var, avg;
 	var n;
 	var i, k;
 
 	n = this.items.length;
+	// edge case if no samples
 	if(n == 0) {
-	    return null;
+	    return 0.0;
 	}
 	
 	// compute sums if the cache is incomplete
@@ -54,7 +52,7 @@ Sampler = {
 	    for (i=0; i<n; i++) {
 		for (k=0; k<=2; k++) {
 		    sums[k] += this.items[i][k];
-		    sq_sums[k] += Math.pow(this.items[i][k], 2);
+		    sum_sqs[k] += Math.pow(this.items[i][k], 2);
 		}
 	    }
 	// update sums from cache values otherwise
@@ -62,25 +60,26 @@ Sampler = {
 	    for (k=0; k<=2; k++) {
 		sums[k] = this.cache.sums[k] - 
 		    this.cache.item[k] + this.items[n-1][k];
-		sq_sums[k] = this.cache.sq_sums[k] - 
+		sum_sqs[k] = this.cache.sum_sqs[k] - 
 		    Math.pow(this.cache.item[k], 2) + 
-		    Math.pow(this.items[n-1][k]);
+		    Math.pow(this.items[n-1][k], 2);
 	    }
 	}
 
 	// update cache
 	this.cache.sums = sums.slice();
-	this.cache.sq_sums = sq_sums.slice();
+	this.cache.sum_sqs = sum_sqs.slice();
 	this.cache.item = this.items[n-1].slice();
 
-	// compute deviations
+	// compute sum of variance
 	for (k=0; k<=2; k++) {
-	    avg[k] = sums[k] / n;
-	    dev[k] = Math.sqrt(sq_sums[k] / n - Math.pow(avg[k], 2));
+	    avg = sums[k] / n;
+	    // fix for div by zero
+	    sum_var += (sum_sqs[k] - n * Math.pow(avg, 2)) / n; 
 	}
 
 	// return average deviation over three dimensions
-	dev_avg = (dev[0] + dev[1] + dev[2]) / 3;
-	return dev_avg;
+	avg_var = sum_var / 3;
+	return avg_var;
     }
 };

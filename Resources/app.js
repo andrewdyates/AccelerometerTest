@@ -81,8 +81,8 @@ Ti.Accelerometer.addEventListener('update',function(e)
     z.text = 'z:' + e.z;
 
     Sampler.push(e.x, e.y, e.z);
-    v = Sampler.avg_deviation();
-    variance.text = 'deviation:' + v;
+    v = Sampler.variance();
+    variance.text = 'v:' + v;
 });
 
 // note: Accelerometer does not work in simulator
