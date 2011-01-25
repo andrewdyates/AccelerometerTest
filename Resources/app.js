@@ -22,7 +22,6 @@ var x = Titanium.UI.createLabel(
     height:'auto'
 });
 win.add(x);
-
 var y = Titanium.UI.createLabel(
 {
     text:'y:',
@@ -34,7 +33,6 @@ var y = Titanium.UI.createLabel(
     height:'auto'
 });
 win.add(y);
-
 var z = Titanium.UI.createLabel(
 {
     text:'z:',
@@ -46,7 +44,6 @@ var z = Titanium.UI.createLabel(
     height:'auto'
 });
 win.add(z);
-
 var ts = Titanium.UI.createLabel(
 {
     text:'timestamp:',
@@ -58,13 +55,12 @@ var ts = Titanium.UI.createLabel(
     height:'auto'
 });
 win.add(ts);
-
 var variance = Titanium.UI.createLabel(
 {
     text:'v:',
     top:85,
     left:10,
-    font:{fontSize:18},
+    font:{fontSize:14},
     color:'#555',
     width:300,
     height:'auto'
@@ -75,12 +71,23 @@ var mean = Titanium.UI.createLabel(
     text:'u:',
     top:115,
     left:10,
-    font:{fontSize:18},
+    font:{fontSize:14},
     color:'#555',
     width:300,
     height:'auto'
 });
 win.add(mean);
+
+var scale_div = Titanium.UI.createLabel(
+{
+    text:'20',
+    top:180,
+    font:{fontSize:48},
+    color:'#000',
+    height:'auto',
+    textAlign:'center'
+});
+win.add(scale_div);
 
 
 
@@ -88,7 +95,8 @@ win.add(mean);
 // samples every 100ms
 Ti.Accelerometer.addEventListener('update',function(e)
 {
-    var v;
+    var v, display, font_size;
+
     var sum = function(a,b){ return a+b; };
     ts.text = e.timestamp;
     Sampler.push(e.x, e.y, e.z);
@@ -98,11 +106,29 @@ Ti.Accelerometer.addEventListener('update',function(e)
     z.text = 'z:' + e.z + ' => ' + Sampler.items[Sampler.items.length-1][2];
 
     v = Sampler.std_dev.reduce(sum, 0);
-    v = Math.round(v*10)/10;
     variance.text = 'v:' + v;
+
+    display = v.toFixed(1);
+
     mean.text = 'mx:' + Math.round(Sampler.mean[0]) + 
 	' my:' + Math.round(Sampler.mean[1]) +
 	' mz:' + Math.round(Sampler.mean[2]);
+
+    scale_div.text = display;
+    
+    if (v <= 1) {
+	// red
+	scale_div.color = "#ff0000";
+    } else if (v > 1 && v <= 10) {
+	// orange
+	scale_div.color = "#ffa200";
+    } else if (v > 10 && v <= 30) {
+	// yellow
+	scale_div.color = "#aeff00";
+    } else {
+	// green
+	scale_div.color = "#2aff00";
+    }
 });
 
 
