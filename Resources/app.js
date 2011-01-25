@@ -61,7 +61,7 @@ win.add(ts);
 
 var variance = Titanium.UI.createLabel(
 {
-    text:'deviation:',
+    text:'v:',
     top:85,
     left:10,
     font:{fontSize:18},
@@ -70,59 +70,35 @@ var variance = Titanium.UI.createLabel(
     height:'auto'
 });
 win.add(variance);
-
-var is_vibrating_label = Titanium.UI.createLabel(
+var mean = Titanium.UI.createLabel(
 {
-    text:'is_vibrating: ',
-    top:105,
+    text:'u:',
+    top:115,
     left:10,
     font:{fontSize:18},
     color:'#555',
     width:300,
     height:'auto'
 });
-win.add(is_vibrating_label);
+win.add(mean);
 
-// if avg variance is <, assume not vibrating, 
-// else assume vibration
-var VIBRATION_THRESHOLD = 0.00009;
-var is_vibrating = false;
-
-
-Ti.App.addEventListener('stop_vibration', function(e) 
-{
-    is_vibrating = false;
-    is_vibrating_label.text = "is_vibrating: " + is_vibrating;
-});
-
-Ti.App.addEventListener('start_vibration', function(e) 
-{
-    is_vibrating = true;
-    is_vibrating_label.text = "is_vibrating: " + is_vibrating;
-});
 
 
 // Accelerometer Event listener
 // samples every 100ms
 Ti.Accelerometer.addEventListener('update',function(e)
 {
-    var v;
     ts.text = e.timestamp;
-    x.text = 'x: ' + e.x;
-    y.text = 'y:' + e.y;
-    z.text = 'z:' + e.z;
+    Sampler.push(e.x, e.y, e.z, e.t);
 
-    Sampler.push(e.x, e.y, e.z);
-    v = Sampler.variance();
-    variance.text = 'v:' + v;
+    x.text = 'x: ' + e.x + ' => ' + Sampler.items[Sampler.items.length-1][0];
+    y.text = 'y:' + e.y + ' => ' + Sampler.items[Sampler.items.length-1][1];
+    z.text = 'z:' + e.z + ' => ' + Sampler.items[Sampler.items.length-1][2];
 
-    // vibration handler test
-    if (!is_vibrating && v > VIBRATION_THRESHOLD) {
-	Ti.App.fireEvent('start_vibration', {v:v});
-    } else if (is_vibrating && v <= VIBRATION_THRESHOLD) {
-	Ti.App.fireEvent('stop_vibration', {v:v});
-    }
-    
+    variance.text = 'v:' + (Math.round(Sampler.sum_std_dev()*10)/10);
+    mean.text = 'mx:' + Math.round(Sampler.mean[0]) + 
+	' my:' + Math.round(Sampler.mean[1]) +
+	' mz:' + Math.round(Sampler.mean[2]);
 });
 
 // note: Accelerometer does not work in simulator
