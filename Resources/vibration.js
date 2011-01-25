@@ -9,58 +9,39 @@
  * https://github.com/andrewdyates
  */
 
+// this could be a general class with initialization 
+//   "size", "unit", "dimensions", and "error"
+// all "k" loops should be dynamic to dimensions
 Sampler = {
     /* Model Accelerometer samples.
      * 
      * Attributes:
      *   UNIT_SCALE: CONST num of input scale, 
      *   MAX_SIZE: CONST int >0 of maximum samples saved
+     *   ERROR: CONST int =>0 of sampling error in units
      *   items: [[int, int, int],] of (x,y,z) saved samples
-     *   timestamps: [int] of saved sample timestamps
      *   mean: [int, int, int] of (x,y,z) means
-     *   std_dev: [int, int, int] of (x,y,z) standard deviations
+     *   std_dev: [int, int, int] of (x,y,z) error-corrected standard deviations
      */
 
     // units m/s^2, measured for iPhone 3GS (Andrew's model)
     UNIT_SCALE: 0.0181121826171875,
     MAX_SIZE: 15,
+    ERROR: 0.5,
 
     items: [],
-    timestamps: [],
-
-    mean: [null, null, null],
-    std_dev: [null, null, null],
+    mean: [],
+    std_dev: [],
 
     clear: function() {
 	/* Clear all sample values. 
 	 * */
 	this.items = [];
-	this.timestamps = [];
-	this.mean = [null, null, null];
-	this.std_dev = [null, null, null];
+	this.mean = [];
+	this.std_dev = [];
     },
 
-    sum_std_dev: function() {
-	/* Return error-corrected average standard deviation.
-	 * 
-	 * Returns: 
-	 *   num: average standard deviation filtering for errors.
-	 */
-	var k, sum=0;	
-	for (k=0;k<=2;k++) {
-	    // std_dev <=0.5 is zero
-	    if (this.std_dev[k] >= 0.5) {
-		sum += this.std_dev[k];
-	    }
-	}
-	return sum;
-    },
-
-    lg: function() {
-	return Math.log(this.sum_std_dev());
-    },
-
-    push: function(x, y, z, t) {
+    push: function(x, y, z) {
 	/* Save scaled sample on this.items.
 	 * 
 	 * Each call updates computed values and resizes this.items.
@@ -69,15 +50,12 @@ Sampler = {
 	 *   x: num of x coordinate from accelerometer reading
 	 *   y: num of y coordinate from accelerometer reading
 	 *   z: num of z coordinate from accelerometer reading
-	 *   t: int of timestamp from accelerometer reading
 	 */
 	var sample = [x, y, z];
 	sample = sample.map(this._scale);
 	this.items.push(sample);
-	this.timestamps.push(t);
 	if (this.items.length > this.MAX_SIZE) {
 	    this.items.shift();
-	    this.timestamps.shift();
 	}
 	this._update();
     },
@@ -100,6 +78,7 @@ Sampler = {
 	n = this.items.length;
 	// edge case if no samples: exit, do not update
 	if(n == 0) {
+	    this.clear();
 	    return null;
 	}
 	
@@ -114,12 +93,57 @@ Sampler = {
 	// Compute means
 	this.mean = sums.map(scale_n);
 
-	// Compute standard deviations
+	// Compute error-corrected standard deviations
 	for (k=0; k<=2; k++) {
 	    variance_k = (sum_sqs[k] - n * square(this.mean[k], 2)) / n;
-	    this.std_dev[k] = Math.sqrt(variance_k);
+	    this.std_dev[k] = Math.sqrt(variance_k) - this.ERROR;
+	    if (this.std_dev[k] < 0) {
+		this.std_dev[k] = 0;
+	    }
 	}
 
 	return true;
     }
+};
+
+
+// this should be implemented as a sampler
+Averager = {
+    items: [],
+    // roughly 3 seconds for 100ms samples
+    MAX_SIZE: 30,
+    mean: null,
+
+    push: function(x) {
+	/* Save sample on this.items.
+	 * 
+	 * Args:
+	 *   x: num of sample to add
+	 */
+	this.items.push(x);
+	if (this.items.length > this.MAX_SIZE) {
+	    this.items.shift();
+	}
+	this._update();
+    },
+
+    _update: function() {
+	/* Update computed values.
+	 */
+	var s = 0;
+	var n = this.items.length;
+	var sum = function(a, b) { return a+b; };
+
+	// edge case for empty items list
+	if (n==0) {
+	    this.mean = null;
+	    return null;
+	}
+	// clip outliers?
+	s = items.reduce(sum, 0);
+	this.mean = s/n;
+
+	return true;
+    }
+    
 };

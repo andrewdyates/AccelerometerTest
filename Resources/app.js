@@ -1,5 +1,5 @@
+// note: Accelerometer does not work in simulator
 Ti.include("vibration.js");
-
 
 // Window
 Titanium.UI.setBackgroundColor('#000');
@@ -88,19 +88,22 @@ win.add(mean);
 // samples every 100ms
 Ti.Accelerometer.addEventListener('update',function(e)
 {
+    var v;
+    var sum = function(a,b){ return a+b; };
     ts.text = e.timestamp;
-    Sampler.push(e.x, e.y, e.z, e.t);
+    Sampler.push(e.x, e.y, e.z);
 
     x.text = 'x: ' + e.x + ' => ' + Sampler.items[Sampler.items.length-1][0];
     y.text = 'y:' + e.y + ' => ' + Sampler.items[Sampler.items.length-1][1];
     z.text = 'z:' + e.z + ' => ' + Sampler.items[Sampler.items.length-1][2];
 
-    variance.text = 'v:' + (Math.round(Sampler.sum_std_dev()*10)/10);
+    v = Sampler.std_dev.reduce(sum, 0);
+    v = Math.round(v*10)/10;
+    variance.text = 'v:' + v;
     mean.text = 'mx:' + Math.round(Sampler.mean[0]) + 
 	' my:' + Math.round(Sampler.mean[1]) +
 	' mz:' + Math.round(Sampler.mean[2]);
 });
 
-// note: Accelerometer does not work in simulator
 
 win.open();
