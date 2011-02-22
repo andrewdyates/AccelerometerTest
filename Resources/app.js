@@ -11,6 +11,16 @@ var win = Titanium.UI.createWindow(
 });
 
 // Labels
+var version = Titanium.UI.createLabel(
+{
+    text:'version: 0.55',
+    top:240,
+    font:{fontSize:12},
+    color:'#555',
+    width:300,
+    height:'auto'
+});
+win.add(version);
 var x = Titanium.UI.createLabel(
 {
     text:'x:',
@@ -77,7 +87,17 @@ var mean = Titanium.UI.createLabel(
     height:'auto'
 });
 win.add(mean);
-
+var units = Titanium.UI.createLabel(
+{
+    text:'Units in mm/s^2',
+    top:130,
+    left:10,
+    font:{fontSize:14},
+    color:'#555',
+    width:300,
+    height:'auto'
+});
+win.add(mean);
 var scale_div = Titanium.UI.createLabel(
 {
     text:'20',
@@ -90,12 +110,11 @@ var scale_div = Titanium.UI.createLabel(
 win.add(scale_div);
 
 
-
 // Accelerometer Event listener
 // samples every 100ms
 Ti.Accelerometer.addEventListener('update',function(e)
 {
-    var v, display, font_size;
+    var v, display;
 
     var sum = function(a,b){ return a+b; };
     ts.text = e.timestamp;
@@ -105,8 +124,8 @@ Ti.Accelerometer.addEventListener('update',function(e)
     y.text = 'y:' + e.y + ' => ' + Sampler.items[Sampler.items.length-1][1];
     z.text = 'z:' + e.z + ' => ' + Sampler.items[Sampler.items.length-1][2];
 
-    v = Sampler.std_dev.reduce(sum, 0);
-    variance.text = 'v:' + v;
+    v = Sampler.vibration;
+    variance.text = 'v:' + v + " mm/s^2";
 
     display = v.toFixed(1);
 
@@ -119,10 +138,10 @@ Ti.Accelerometer.addEventListener('update',function(e)
     if (v <= 1) {
 	// red
 	scale_div.color = "#ff0000";
-    } else if (v > 1 && v <= 10) {
+    } else if (v > 1 && v <= 20) {
 	// orange
 	scale_div.color = "#ffa200";
-    } else if (v > 10 && v <= 30) {
+    } else if (v > 20 && v <= 50) {
 	// yellow
 	scale_div.color = "#aeff00";
     } else {

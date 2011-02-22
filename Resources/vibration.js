@@ -21,7 +21,7 @@ Sampler = {
      *   items: [[int, int, int],] of (x,y,z) saved samples, unitless
      *   mean: [num, num, num] of (x,y,z) means, m/s^2
      *   std_dev: [num, num, num] of (x,y,z) smoothed standard deviations, m/s^2
-     *   vibration: num of vibration, m/s^2
+     *   vibration: num of vibration, mm/s^2
      */
 
     // units m/s^2, measured for iPhone 3GS (Andrew's model)
@@ -101,21 +101,30 @@ Sampler = {
 	// Compute means
 	mean = sums.map(scale_n);
 
+        // Compute error-corrected standard deviations
+	for (k=0; k<=2; k++) {
+            variance_k = (sum_sqs[k] - n * square(mean[k], 2)) / n;
+            std_dev[k] = Math.sqrt(variance_k) - this.ERROR;
+            if (std_dev[k] < 0) {
+                std_dev[k] = 0;
+            }
+        }
+
 	// Set Computed Values to standard units (m/s^2)
 	this.mean = mean.map(this._unscale);
 	this.std_dev = std_dev.map(this._unscale);
- 	this.vibration = this.std_dev.reduce(sum);
+	// Set Vibration to mm/s^2
+ 	this.vibration = this.std_dev.reduce(sum) * 1000;
 
 	// Fire updated event
-	Titanium.App.fireEvent('vibration_updated', {vibration:this.vibration});
+	Ti.App.fireEvent('vibration_updated', {vibration:this.vibration});
 	//
 	// LISTEN USING:
 	// 
-	// Titanium.App.addEventListener('vibration_updated', function(e) {
+	// Ti.App.addEventListener('vibration_updated', function(e) {
         //   do_something(e.vibration);
         // }
 
 	return true;
     }
 };
-
