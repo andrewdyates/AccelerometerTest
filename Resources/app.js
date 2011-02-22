@@ -1,7 +1,7 @@
 // note: Accelerometer does not work in simulator
 Ti.include("vibration.js");
 
-/*
+
 // Window
 Titanium.UI.setBackgroundColor('#000');
 var win = Titanium.UI.createWindow(
@@ -153,4 +153,3 @@ Ti.Accelerometer.addEventListener('update',function(e)
 
 
 win.open();
-*/

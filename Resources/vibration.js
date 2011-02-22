@@ -6,11 +6,14 @@
  * 
  * andrewyates.name@gmail.com
  * https://github.com/andrewdyates
+ * 
+ * Change Log: 
+ *   Feb 21: 
+ *     unscaled to mm/s^2
+ *     added "vibration" property
+ *     added event hook "update_vibration"
  */
 
-// this could be a general class with initialization 
-//   "size", "unit", "dimensions", and "error"
-// all "k" loops should be dynamic to dimensions
 Sampler = {
     /* Model Accelerometer samples.
      * 
