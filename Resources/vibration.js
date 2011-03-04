@@ -1,22 +1,24 @@
 // Javascript : Appcelerator Titanium
 // -*- coding: utf-8 -*-
-// Copyright © 2011 Andrew D. Yates
-// All Rights Reserved
 /* Vibration.js: Detect iPhone and Android vibrations with Appcelerator.
  * 
- * andrewyates.name@gmail.com
- * https://github.com/andrewdyates
+ * Dryer Bro
+ * http://dryerbro.com
+ * CSE 772 Capstone Project, The Ohio State University
  * 
- * Change Log: 
- *   Feb 21: 
- *     unscaled to mm/s^2
- *     added "vibration" property
- *     added event hook "update_vibration"
+ * Copyright © 2011 Andrew D. Yates
+ * Email: andrewyates.name@gmail.com
+ * URL: https://github.com/andrewdyates
  */
 
-Sampler = {
-    /* Model Accelerometer samples.
+var Vibration = {
+    /* Vibration reader based on Accelerometer readings.
      * 
+     * SAMPLE USE:
+     * Ti.App.addEventListener('vibration_updated', function(e) {
+     *   do_something(e.vibration);
+     * }
+     *
      * Attributes:
      *   UNIT_SCALE: CONST num of input scale,  m/s^2
      *   MAX_SIZE: CONST int >0 of maximum samples saved
@@ -45,7 +47,27 @@ Sampler = {
 	this.std_dev = [];
     },
 
-    push: function(x, y, z) {
+    start: function() {
+	/* Start automatic sampling from Accelerometer */
+	Ti.Accelerometer.addEventListener('update', this._push_self);
+    },
+
+    stop: function() {
+	/* Stop automatic sampling from Accelerometer */
+	Ti.Accelerometer.removeEventListener('update', this._push_self);
+    },
+
+    _push_self: function(e) {
+	/* Accelerometer update handler.
+	 * 
+	 * Args:
+	 *   e: event object including properties e.x, e.y, and e.z
+	 */
+	// "this" is not bound, use global object
+	Vibration._push(e.x, e.y, e.z);
+    },
+
+    _push: function(x, y, z) {
 	/* Save scaled sample on this.items.
 	 * 
 	 * Each call updates computed values and resizes this.items.
@@ -65,15 +87,19 @@ Sampler = {
     },
 
     _scale: function(x) {
-	return Math.round(x / Sampler.UNIT_SCALE);
+	return Math.round(x / Vibration.UNIT_SCALE);
     },
 
     _unscale: function(x) {
-	return x * Sampler.UNIT_SCALE;
+	return x * Vibration.UNIT_SCALE;
     },
 
     _update: function() {
 	/* Update computed values: mean, std_dev.
+	 * 
+	 * Fires:
+	 *   vibration_update: 
+	 *     e.vibration: num of vibration in mm/s^2
 	 *  */
 	var sums = [0, 0, 0];
 	var sum_sqs = [0, 0, 0];
@@ -87,12 +113,12 @@ Sampler = {
 	var sum = function(a, b) { return a+b; };
 
 	n = this.items.length;
+
 	// edge case if no samples: exit, do not update
 	if(n == 0) {
 	    this.clear();
 	    return null;
 	}
-	
 	// Compute sums
 	for (i=0; i<n; i++) {
 	    for (k=0; k<=2; k++) {
@@ -100,10 +126,9 @@ Sampler = {
 		sum_sqs[k] += square(this.items[i][k]);
 	    }
 	}
-
+	
 	// Compute means
 	mean = sums.map(scale_n);
-
         // Compute error-corrected standard deviations
 	for (k=0; k<=2; k++) {
             variance_k = (sum_sqs[k] - n * square(mean[k], 2)) / n;
@@ -112,7 +137,6 @@ Sampler = {
                 std_dev[k] = 0;
             }
         }
-
 	// Set Computed Values to standard units (m/s^2)
 	this.mean = mean.map(this._unscale);
 	this.std_dev = std_dev.map(this._unscale);
@@ -120,13 +144,8 @@ Sampler = {
  	this.vibration = this.std_dev.reduce(sum) * 1000;
 
 	// Fire updated event
-	Ti.App.fireEvent('vibration_updated', {vibration:this.vibration});
-	//
-	// LISTEN USING:
-	// 
-	// Ti.App.addEventListener('vibration_updated', function(e) {
-        //   do_something(e.vibration);
-        // }
+	var vibration = this.vibration;
+	Ti.App.fireEvent('vibration_update', {vibration: vibration});
 
 	return true;
     }

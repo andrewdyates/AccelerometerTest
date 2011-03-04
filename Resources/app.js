@@ -14,7 +14,7 @@ var win = Titanium.UI.createWindow(
 // Labels
 var version = Titanium.UI.createLabel(
 {
-    text:'version: 0.55',
+    text:'version: 0.894',
     top:240,
     font:{fontSize:12},
     color:'#555',
@@ -113,43 +113,21 @@ win.add(scale_div);
 
 // Accelerometer Event listener
 // samples every 100ms
-Ti.Accelerometer.addEventListener('update',function(e)
+Ti.App.addEventListener('vibration_update', function(e) 
 {
     var v, display;
-
-    var sum = function(a,b){ return a+b; };
-    ts.text = e.timestamp;
-    Sampler.push(e.x, e.y, e.z);
-
-    x.text = 'x: ' + e.x + ' => ' + Sampler.items[Sampler.items.length-1][0];
-    y.text = 'y:' + e.y + ' => ' + Sampler.items[Sampler.items.length-1][1];
-    z.text = 'z:' + e.z + ' => ' + Sampler.items[Sampler.items.length-1][2];
-
-    v = Sampler.vibration;
+    
+    v = e.vibration;
     variance.text = 'v:' + v + " mm/s^2";
 
     display = v.toFixed(1);
-
-    mean.text = 'mx:' + Math.round(Sampler.mean[0]) + 
-	' my:' + Math.round(Sampler.mean[1]) +
-	' mz:' + Math.round(Sampler.mean[2]);
-
     scale_div.text = display;
-    
-    if (v <= 1) {
-	// red
-	scale_div.color = "#ff0000";
-    } else if (v > 1 && v <= 20) {
-	// orange
-	scale_div.color = "#ffa200";
-    } else if (v > 20 && v <= 50) {
-	// yellow
-	scale_div.color = "#aeff00";
-    } else {
-	// green
-	scale_div.color = "#2aff00";
-    }
+
 });
+
+Ti.App.fireEvent('vibration_update', {vibration: 5});
+
+Vibration.start();
 
 
 win.open();
